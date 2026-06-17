@@ -9,8 +9,6 @@ COMO RODAR COM DOCKER
 3) Acesse o jogo:
    http://localhost:8080
 
-4) Acesse o phpMyAdmin, se precisar:
-   http://localhost:8081
 
 Dados do banco:
 - Host interno: db
