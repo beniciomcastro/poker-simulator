@@ -1,0 +1,54 @@
+services:
+  app:
+    build: .
+    container_name: poker-app
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: poker_game
+      DB_USER: poker_user
+      DB_PASS: poker_pass
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/var/www/html
+
+  db:
+    image: mysql:8.0
+    container_name: poker-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: poker_game
+      MYSQL_USER: poker_user
+      MYSQL_PASSWORD: poker_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - poker_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_pass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: poker-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: poker_user
+      PMA_PASSWORD: poker_pass
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  poker_db_data:
