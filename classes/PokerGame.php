@@ -2,35 +2,52 @@
 require_once __DIR__ . '/Deck.php';
 require_once __DIR__ . '/HandEvaluator.php';
 
+
 class PokerGame
 {
     private const SMALL_BLIND = 10;
     private const BIG_BLIND = 20;
 
-    public static function start(string $name, int $chips = 1000): array
-    {
-        $players = [
-            self::player($name ?: 'Beni', 'human', 1000),
-            self::player('Luna', 'bot', 1000),
-            self::player('Max', 'bot', 1000),
-            self::player('Nina', 'bot', 1000),
-        ];
-        return self::dealNewHand($players, true, -1);
-    }
+    public static function start(string $name, int $chips = 1000, string $mode = 'casual'): array
+{
+    $mode = in_array($mode, ['casual', 'legendary'], true) ? $mode : 'casual';
+
+    $players = [
+        self::player($name ?: 'Beni', 'human', 1000),
+        self::player('Luna', 'bot', 1000),
+        self::player('Max', 'bot', 1000),
+        self::player('Nina', 'bot', 1000),
+    ];
+
+    $game = self::dealNewHand($players, true, -1);
+    $game['botMode'] = $mode;
+
+    return $game;
+}
 
     public static function nextHand(array $old): array
-    {
-        $players = $old['players'] ?? [];
-        if (count($players) < 2) return $old;
+{
+    $players = $old['players'] ?? [];
+    $mode = $old['botMode'] ?? 'casual';
 
-        foreach ($players as $i => $p) {
-            $players[$i]['chips'] = max(0, (int)($p['chips'] ?? 0));
-            $players[$i]['eliminated'] = $players[$i]['chips'] <= 0;
-        }
-
-        if (self::aliveCount($players) <= 1) return self::finishGame($old);
-        return self::dealNewHand($players, false, (int)($old['dealer'] ?? -1));
+    if (count($players) < 2) {
+        return $old;
     }
+
+    foreach ($players as $i => $p) {
+        $players[$i]['chips'] = max(0, (int)($p['chips'] ?? 0));
+        $players[$i]['eliminated'] = $players[$i]['chips'] <= 0;
+    }
+
+    if (self::aliveCount($players) <= 1) {
+        return self::finishGame($old);
+    }
+
+    $game = self::dealNewHand($players, false, (int)($old['dealer'] ?? -1));
+    $game['botMode'] = $mode;
+
+    return $game;
+}
 
     private static function player(string $name, string $type, int $chips): array
     {
@@ -362,19 +379,9 @@ class PokerGame
     }
 
     private static function botDecision(array $g, int $i): array
-    {
-        $p = $g['players'][$i];
-        $score = HandEvaluator::evaluate(array_merge($p['cards'], $g['community']));
-        $rank = $score[0]; $toCall = max(0, $g['currentBet'] - $p['bet']);
-        $highCards = array_map(fn($c)=>['J'=>11,'Q'=>12,'K'=>13,'A'=>14][$c['value']] ?? (int)$c['value'], $p['cards']);
-        rsort($highCards); $strongPre = $g['stage']==='preflop' && ($rank>=1 || $highCards[0]>=13 || ($highCards[0]>=11 && $highCards[1]>=10));
-        $r = rand(1,100);
-        if ($rank >= 5 && $r <= 22) return ['action'=>'raise', 'raise'=>max(20, (int)$p['chips'] - $toCall)];
-        if (($rank >= 3 || $strongPre) && $r <= 10) return ['action'=>'raise', 'raise'=>max(20, (int)$p['chips'] - $toCall)];
-        if ($rank >= 3 || $strongPre) return ['action'=>$r<=35 ? 'raise' : ($toCall>0?'call':'check'), 'raise'=>rand(1,3)*20];
-        if ($rank >= 1) return ['action'=>$r<=18 ? 'raise' : ($toCall>0?'call':'check'), 'raise'=>20];
-        if ($toCall === 0) return ['action'=>'check','raise'=>0];
-        $chance = $g['stage']==='preflop' ? 62 : 38;
-        return ['action'=>$r <= $chance ? 'call' : 'fold', 'raise'=>0];
-    }
+{
+    require_once __DIR__ . '/botStrategy.php';
+
+    return BotStrategy::decide($g, $i);
+}
 }

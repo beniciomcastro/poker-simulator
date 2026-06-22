@@ -12,6 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
         unset($_SESSION['game']);
+        unset($_SESSION['table_mode_chosen']);
+unset($_SESSION['table_mode']);
         header('Location: game.php'); exit;
     }
     $error = 'Dados inválidos.';

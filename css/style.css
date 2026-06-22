@@ -1724,3 +1724,80 @@ body {
     filter: grayscale(1);
   }
 }
+
+@media (max-width: 700px) {
+  .mode-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mode-select {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, rgba(38, 132, 88, 0.28), transparent 42%),
+    linear-gradient(135deg, #020806, #082317 50%, #020806);
+}
+
+.mode-select.hidden {
+  display: none !important;
+}
+
+.mode-card {
+  width: min(760px, 92vw);
+  padding: 40px;
+  border-radius: 28px;
+  background: rgba(3, 12, 9, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 35px 100px rgba(0, 0, 0, 0.75);
+  text-align: center;
+}
+
+.mode-card h1 {
+  color: #ffe477;
+  margin-bottom: 28px;
+}
+
+.mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.mode-btn {
+  min-height: 180px;
+  border: 0;
+  border-radius: 24px;
+  padding: 26px;
+  background: linear-gradient(145deg, #123d2b, #082217);
+  color: white;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mode-btn.legendary {
+  background: linear-gradient(145deg, #4b2510, #160a05);
+}
+
+.mode-btn strong {
+  display: block;
+  color: #ffe477;
+  font-size: 25px;
+  margin-bottom: 12px;
+}
+
+.mode-btn span {
+  font-size: 15px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mode-btn:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 228, 119, 0.35),
+    0 22px 55px rgba(0, 0, 0, 0.45);
+}
