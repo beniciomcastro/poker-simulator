@@ -1,9 +1,9 @@
 POKER SIMULATOR - VERSÃO CORRIGIDA
 
 Como rodar no XAMPP:
-1. Copie a pasta Poker_simulator_ready para htdocs.
+1. Copie a pasta Poker_simulator para htdocs.
 2. Ligue Apache e MySQL.
-3. Abra no navegador: http://localhost/Poker_simulator_ready
+3. Abra no navegador: http://localhost/Poker_simulator
 4. Crie uma conta e jogue.
 
 Importante:
