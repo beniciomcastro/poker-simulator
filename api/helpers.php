@@ -1,8 +1,10 @@
 <?php
+
+require_once __DIR__ . '/../config/security.php';
+
 function api_boot(): void
 {
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    security_headers(true);
 }
 
 function api_out(array $payload): void
@@ -11,19 +13,61 @@ function api_out(array $payload): void
     exit;
 }
 
+function api_require_login(): void
+{
+    if (empty($_SESSION['user_id'])) {
+        api_out([
+            'ok' => false,
+            'error' => 'Sessão expirada. Faça login novamente.'
+        ]);
+    }
+}
+
+function api_require_game(): void
+{
+    api_require_login();
+
+    if (empty($_SESSION['game'])) {
+        api_out([
+            'ok' => false,
+            'error' => 'Nenhum jogo ativo.'
+        ]);
+    }
+}
+
+function api_require_csrf(): void
+{
+    csrf_require_json();
+}
+
 function save_finished_hand_once(PDO $pdo): void
 {
-    if (empty($_SESSION['user_id']) || empty($_SESSION['game']) || empty($_SESSION['game']['finished'])) return;
-    if (!empty($_SESSION['game']['handSaved'])) return;
+    if (empty($_SESSION['user_id']) || empty($_SESSION['game']) || empty($_SESSION['game']['finished'])) {
+        return;
+    }
 
-    $chips = (int)($_SESSION['game']['players'][0]['chips'] ?? 0);
-    $pdo->prepare('UPDATE users SET chips=? WHERE id=?')->execute([$chips, $_SESSION['user_id']]);
+    if (!empty($_SESSION['game']['handSaved'])) {
+        return;
+    }
+
+    $chips = max(0, (int)($_SESSION['game']['players'][0]['chips'] ?? 0));
+    $pot = max(0, (int)($_SESSION['game']['pot'] ?? 0));
+
+    $winner = mb_substr((string)($_SESSION['game']['winner'] ?? ''), 0, 100);
+    $result = mb_substr((string)($_SESSION['game']['handResult'] ?? ''), 0, 255);
+
+    $pdo->prepare('UPDATE users SET chips=? WHERE id=?')->execute([
+        $chips,
+        (int)$_SESSION['user_id']
+    ]);
+
     $pdo->prepare('INSERT INTO hands (user_id,winner_name,pot,result_text) VALUES (?,?,?,?)')
         ->execute([
-            $_SESSION['user_id'],
-            $_SESSION['game']['winner'] ?? '',
-            (int)($_SESSION['game']['pot'] ?? 0),
-            $_SESSION['game']['handResult'] ?? ''
+            (int)$_SESSION['user_id'],
+            $winner,
+            $pot,
+            $result
         ]);
+
     $_SESSION['game']['handSaved'] = true;
 }

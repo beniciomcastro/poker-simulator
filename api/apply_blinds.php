@@ -1,9 +1,15 @@
 <?php
-session_start();
-require_once 'helpers.php';
-require_once '../config/database.php';
-require_once '../classes/PokerGame.php';
+
+require_once __DIR__ . '/helpers.php';
+secure_session_start();
 api_boot();
-if (!isset($_SESSION['user_id'], $_SESSION['game'])) api_out(['ok'=>false, 'error'=>'Sessão expirada. Faça login novamente.']);
+api_require_csrf();
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../classes/PokerGame.php';
+
+api_require_game();
+
 $_SESSION['game'] = PokerGame::applyPendingBlinds($_SESSION['game']);
+
 api_out(['ok'=>true,'game'=>$_SESSION['game']]);

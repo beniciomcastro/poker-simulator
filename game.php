@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/security.php';
+secure_session_start();
+security_headers();
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -11,6 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="csrf-token" content="<?=e(csrf_token())?>">
 <title>Poker Simulator</title>
 <link rel="stylesheet" href="css/style.css?v=2">
 <link rel="icon" type="image/png" href="icon.png">

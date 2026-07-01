@@ -191,7 +191,23 @@ async function post(url, body) {
 }
 
 async function requestJson(url, options = {}) {
-  const res = await fetch(url, { ...options, cache: "no-store" });
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const method = (options.method || "GET").toUpperCase();
+  const headers = new Headers(options.headers || {});
+
+  if (csrf) headers.set("X-CSRF-Token", csrf);
+
+  if (method !== "GET" && options.body instanceof FormData && csrf && !options.body.has("csrf_token")) {
+    options.body.append("csrf_token", csrf);
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    cache: "no-store",
+    credentials: "same-origin",
+  });
   const text = await res.text();
   let data;
   try {
